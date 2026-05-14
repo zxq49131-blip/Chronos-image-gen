@@ -60,7 +60,7 @@ Calls are distributed across tokens for faster generation.
 ## Claude Code Skill
 
 ```bash
-npx skills add https://github.com/zxq49131-blip/zhexueqi-image-gen
+npx skills add https://github.com/zxq49131-blip/Chronos-image-gen
 ```
 
 Then just ask Claude Code to generate images — it will use this skill.
