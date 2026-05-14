@@ -60,7 +60,7 @@ export ZHEXUEQI_TOKEN_2="zxq_yyy"
 ## Claude Code 技能
 
 ```bash
-npx skills add https://github.com/zxq49131-blip/zhexueqi-image-gen
+npx skills add https://github.com/zxq49131-blip/Chronos-image-gen
 ```
 
 安装后直接让 Claude Code 帮你生图即可。
