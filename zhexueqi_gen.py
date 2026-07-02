@@ -7,7 +7,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
-ZHEXUEQI_URL = "https://zhexueqi.xyz/respones"
+ZHEXUEQI_URL = os.environ.get("ZHEXUEQI_URL", "https://hk-api.zhexueqi.xyz/responses")
 
 
 def load_tokens():
@@ -40,12 +40,15 @@ def parse_sse_images(text):
         try:
             d = json.loads(line[6:])
             item = d.get("item", d) if isinstance(d, dict) else {}
-            for key in ("result", "image_b64", "b64_json"):
-                if key in item and isinstance(item[key], str) and len(item[key]) > 500:
-                    finals.append(item[key])
-                    break
-            if "partial_image_b64" in item and isinstance(item["partial_image_b64"], str):
-                partials.append(item["partial_image_b64"])
+            for candidate in (item, d):
+                if not isinstance(candidate, dict):
+                    continue
+                for key in ("result", "image_b64", "b64_json"):
+                    if key in candidate and isinstance(candidate[key], str) and len(candidate[key]) > 500:
+                        finals.append(candidate[key])
+                        break
+                if "partial_image_b64" in candidate and isinstance(candidate["partial_image_b64"], str):
+                    partials.append(candidate["partial_image_b64"])
         except (json.JSONDecodeError, AttributeError):
             pass
     return finals if finals else partials
@@ -86,7 +89,7 @@ def generate_one(token, payload, call_index):
 
 
 def generate(prompt, n=1, quality="low", size="1024x1024", output_format="png",
-             ref_images=None, out_dir="output", model="gpt-5.5"):
+             ref_images=None, out_dir="output", model="gpt-image-2"):
     tokens = load_tokens()
     if ref_images:
         content = [{"type": "input_image", "image_url": u} for u in ref_images]
@@ -147,7 +150,7 @@ if __name__ == "__main__":
     ap.add_argument("-f", "--format", default="png", choices=["png", "webp"], dest="fmt")
     ap.add_argument("-r", "--ref", action="append", help="Reference image path (repeatable)")
     ap.add_argument("-o", "--out-dir", default="output")
-    ap.add_argument("-m", "--model", default="gpt-5.5")
+    ap.add_argument("-m", "--model", default="gpt-image-2")
     args = ap.parse_args()
     refs = None
     if args.ref:

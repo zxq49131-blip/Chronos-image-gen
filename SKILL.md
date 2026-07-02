@@ -5,7 +5,9 @@ description: Call image generation models through the zhexueqi.xyz API. Use this
 
 # zhexueqi.xyz Image Generation
 
-Generate images via `https://zhexueqi.xyz/responses` using `gpt-image-2` by default with the `image_generation` tool. No OpenAI API key required; use a provider token from an image-generation/image-generation subscription group.
+Generate images via `https://hk-api.zhexueqi.xyz/responses` using `gpt-image-2` by default with the `image_generation` tool. No OpenAI API key required; use a provider token from an image-generation/image-generation subscription group.
+
+Patch note: the bundled script uses the HK API endpoint by default and supports `ZHEXUEQI_URL` override. Its SSE parser handles top-level `partial_image_b64` events as well as nested `item` image fields.
 
 Model selection rules:
 - Tell users the supported image models are `gpt-image-2` and `grok-imagine-image`.
@@ -46,7 +48,7 @@ ZHEXUEQI_TOKEN_3=zxq_zzzzzzzz
 ### Endpoint
 
 ```
-POST https://zhexueqi.xyz/responses
+POST https://hk-api.zhexueqi.xyz/responses
 Authorization: Bearer $ZHEXUEQI_TOKEN
 Content-Type: application/json
 ```

@@ -1,23 +1,41 @@
 # zhexueqi-image-gen
-[中文文档](README_CN.md)
-Generate images via [zhexueqi.xyz](https://zhexueqi.xyz) API — no OpenAI key required.
+
+Generate images through the zhexueqi.xyz API.
+
+This patched version fixes the working endpoint/model defaults and SSE parsing used by the current API response.
 
 ## Quick Start
 
 ```bash
-# 1. Set your token
 export ZHEXUEQI_TOKEN="zxq_..."
+python zhexueqi_gen.py "a crisp 2D game inventory icon of wooden logs, transparent background"
+```
 
-# 2. Install deps
-pip install requests
+Windows PowerShell:
 
-# 3. Generate
-python zhexueqi_gen.py "a photorealistic red apple on a white table"
+```powershell
+$env:ZHEXUEQI_TOKEN="zxq_..."
+python .\zhexueqi_gen.py "a crisp 2D game inventory icon of wooden logs, transparent background"
+```
+
+## Defaults
+
+- Endpoint: `https://hk-api.zhexueqi.xyz/responses`
+- Model: `gpt-image-2`
+- Quality: `low`
+- Size: `1024x1024`
+- Format: `png`
+- Streaming: enabled
+
+Override the endpoint when needed:
+
+```bash
+export ZHEXUEQI_URL="https://hk-api.zhexueqi.xyz/responses"
 ```
 
 ## Usage
 
-```
+```text
 python zhexueqi_gen.py "prompt" [options]
 
 Options:
@@ -25,69 +43,29 @@ Options:
   -q QUALITY    low | medium | high (default low)
   -s SIZE       e.g. 1024x1024, 2048x2048, 2880x2880, auto
   -f FORMAT     png | webp (default png)
-  -r PATH       Reference image (repeatable)
+  -r PATH       Reference image path (repeatable)
   -o DIR        Output directory (default output)
-  -m MODEL      gpt-5.5 (default) | gpt-5.4 | gpt-5.4-mini
+  -m MODEL      gpt-image-2 (default) | grok-imagine-image
 ```
 
-### Examples
+## Examples
 
 ```bash
-# Basic
-python zhexueqi_gen.py "a sunset over mountains"
-
-# High quality, 2K
-python zhexueqi_gen.py "a futuristic city" -q high -s 2048x2048
-
-# 4 images parallel (with multiple tokens)
-python zhexueqi_gen.py "a cute cat" -n 4
-
-# With reference image
-python zhexueqi_gen.py "draw a hat on this cat" -r cat.png -r style_ref.png
+python zhexueqi_gen.py "a cozy colony sim main menu background, painterly, warm dawn" -q high -s 2048x2048 -o output/main_menu
+python zhexueqi_gen.py "a crisp game inventory icon of stone chunks, transparent background" -n 4 -q medium -s 1024x1024 -o output/icons
+python zhexueqi_gen.py "redraw this as a clean UI icon" -r reference.png -q medium -s 1024x1024
 ```
 
-### Multiple Tokens
+## Patch Notes
 
-For parallel generation with `-n > 1`, add more tokens:
+- Changed the default endpoint from `https://zhexueqi.xyz/respones` to `https://hk-api.zhexueqi.xyz/responses`.
+- Changed the default model from `gpt-5.5` to `gpt-image-2`.
+- Added `ZHEXUEQI_URL` environment override.
+- Fixed SSE parsing for top-level `partial_image_b64` events as well as nested `item` image fields.
+- Kept multi-token parallel generation behavior.
 
-```
-export ZHEXUEQI_TOKEN="zxq_xxx"
-export ZHEXUEQI_TOKEN_2="zxq_yyy"
-```
+## Token Notes
 
-Calls are distributed across tokens for faster generation.
+`ZHEXUEQI_TOKEN` must be an image-generation group key. Non-image/chat-only keys may fail authorization.
 
-## Claude Code Skill
-
-```bash
-npx skills add https://github.com/zxq49131-blip/Chronos-image-gen
-```
-
-Then just ask Claude Code to generate images — it will use this skill.
-
-## API Details
-
-Uses the OpenAI Responses API format:
-
-- Endpoint: `POST https://zhexueqi.xyz/respones`
-- Model: `gpt-5.5` with `image_generation` tool
-- Streaming: SSE (`stream: true` to bypass 60s gateway timeout)
-- Auth: `Bearer` token header
-
-See [SKILL.md](SKILL.md) for full API reference, response parsing, and troubleshooting.
-
-## Models
-
-| Model | Speed | Notes |
-|-------|-------|-------|
-| gpt-5.5 | ~30-70s | Best overall |
-| gpt-5.4 | ~30-120s | All sizes work with streaming |
-| gpt-5.4-mini | ~20-120s | Fastest for small/low quality |
-
-All models support reference images and all sizes when using `stream: true`.
-
-
-
-## License
-
-MIT
+Do not commit real tokens.
