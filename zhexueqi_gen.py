@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""zhexueqi_gen.py — Generate images via zhexueqi.xyz API.
+"""zhexueqi_gen.py — Generate images via aichronos.xyz API.
 Usage: python zhexueqi_gen.py "a red apple" -q high -n 2 -s 2048x2048
 """
 import os, sys, json, base64, time
@@ -7,7 +7,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
-ZHEXUEQI_URL = "https://zhexueqi.xyz/respones"
+ZHEXUEQI_URL = "https://aichronos.xyz/v1/images/generations"
 
 
 def load_tokens():
@@ -51,12 +51,33 @@ def parse_sse_images(text):
     return finals if finals else partials
 
 
+def parse_images_response(response):
+    """Extract base64 images from the JSON Images API response, with SSE fallback."""
+    try:
+        payload = response.json()
+    except ValueError:
+        return parse_sse_images(response.text)
+    if not isinstance(payload, dict):
+        return []
+    return [item["b64_json"] for item in payload.get("data", [])
+            if isinstance(item, dict) and isinstance(item.get("b64_json"), str)]
+
+
 def generate_one(token, payload, call_index):
     for attempt in range(1, 4):
         try:
-            r = requests.post(ZHEXUEQI_URL, json=payload,
-                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-                timeout=600)
+            r = requests.post(
+                ZHEXUEQI_URL,
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "User-Agent": "aichronos-image-gen/1.0",
+                    "Connection": "close",
+                },
+                timeout=(30, 600),
+            )
             if r.status_code in (502, 503, 504):
                 print(f"  [#{call_index}] HTTP {r.status_code} (attempt {attempt}/3) — retrying...")
                 time.sleep(2 ** attempt)
@@ -65,7 +86,7 @@ def generate_one(token, payload, call_index):
                 print(f"  [#{call_index}] Auth error — token may be invalid")
                 r.raise_for_status()
             r.raise_for_status()
-            images = parse_sse_images(r.text)
+            images = parse_images_response(r)
             if images:
                 preferred = images[0]
                 elapsed = r.elapsed.total_seconds()
@@ -86,7 +107,7 @@ def generate_one(token, payload, call_index):
 
 
 def generate(prompt, n=1, quality="low", size="1024x1024", output_format="png",
-             ref_images=None, out_dir="output", model="gpt-5.5"):
+             ref_images=None, out_dir="output", model="gpt-image-2.5-sunburst"):
     tokens = load_tokens()
     if ref_images:
         content = [{"type": "input_image", "image_url": u} for u in ref_images]
@@ -96,6 +117,7 @@ def generate(prompt, n=1, quality="low", size="1024x1024", output_format="png",
         fm_input = prompt
     payload = {
         "model": model,
+        "prompt": prompt,
         "input": fm_input,
         "tools": [{"type": "image_generation", "action": "generate",
                     "quality": quality, "size": size, "output_format": output_format}],
@@ -139,7 +161,7 @@ def generate(prompt, n=1, quality="low", size="1024x1024", output_format="png",
 
 if __name__ == "__main__":
     import argparse
-    ap = argparse.ArgumentParser(description="zhexueqi.xyz image generation")
+    ap = argparse.ArgumentParser(description="aichronos.xyz image generation")
     ap.add_argument("prompt", help="Image description")
     ap.add_argument("-n", type=int, default=1, help="Number of images (1-10)")
     ap.add_argument("-q", "--quality", default="low", choices=["low", "medium", "high"])
@@ -147,7 +169,7 @@ if __name__ == "__main__":
     ap.add_argument("-f", "--format", default="png", choices=["png", "webp"], dest="fmt")
     ap.add_argument("-r", "--ref", action="append", help="Reference image path (repeatable)")
     ap.add_argument("-o", "--out-dir", default="output")
-    ap.add_argument("-m", "--model", default="gpt-5.5")
+    ap.add_argument("-m", "--model", default="gpt-image-2.5-sunburst")
     args = ap.parse_args()
     refs = None
     if args.ref:

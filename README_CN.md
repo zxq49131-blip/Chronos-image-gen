@@ -1,6 +1,6 @@
 # zhexueqi-image-gen
 
-通过 [zhexueqi.xyz](https://zhexueqi.xyz) API 生成图片 — 无需 OpenAI Key。
+通过 [aichronos.xyz](https://aichronos.xyz) API 生成图片 — 无需 OpenAI Key。
 
 ## 快速开始
 
@@ -69,7 +69,7 @@ npx skills add <your-skill-source>/zhexueqi-image-gen
 
 使用 OpenAI Responses API 格式：
 
-- 端点：`POST https://zhexueqi.xyz/respones`
+- 端点：`POST https://aichronos.xyz/v1/images/generations`
 - 模型：`gpt-5.5` 调用 `image_generation` 工具
 - 流式：SSE（`stream: true`，绕过 60s 网关超时）
 - 鉴权：`Authorization: Bearer` 头

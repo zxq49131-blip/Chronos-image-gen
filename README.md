@@ -1,6 +1,6 @@
 # zhexueqi-image-gen
 [中文文档](README_CN.md)
-Generate images via [zhexueqi.xyz](https://zhexueqi.xyz) API — no OpenAI key required.
+Generate images via [aichronos.xyz](https://aichronos.xyz) API — no OpenAI key required.
 
 ## Quick Start
 
@@ -69,7 +69,7 @@ Then just ask Claude Code to generate images — it will use this skill.
 
 Uses the OpenAI Responses API format:
 
-- Endpoint: `POST https://zhexueqi.xyz/respones`
+- Endpoint: `POST https://aichronos.xyz/v1/images/generations`
 - Model: `gpt-5.5` with `image_generation` tool
 - Streaming: SSE (`stream: true` to bypass 60s gateway timeout)
 - Auth: `Bearer` token header
